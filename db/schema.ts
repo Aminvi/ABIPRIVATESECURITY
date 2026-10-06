@@ -1,0 +1,2 @@
+import {sqliteTable,text} from 'drizzle-orm/sqlite-core';
+export const requests=sqliteTable('quote_requests',{id:text('id').primaryKey(),createdAt:text('created_at').notNull(),name:text('name').notNull(),email:text('email').notNull(),phone:text('phone').notNull(),date:text('travel_date').notNull(),pickup:text('pickup').notNull(),destination:text('destination').notNull(),city:text('city').notNull(),guests:text('guests').notNull(),package:text('package').notNull(),notes:text('notes').notNull()});
