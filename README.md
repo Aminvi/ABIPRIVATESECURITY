@@ -1,53 +1,54 @@
 # ABIRYVA Private Security
 
-Responsive convoy catalogue with Executive, Signature and Bespoke photographs, service filters, review profiles and persistent quote enquiries.
+Next.js website for Executive, Signature and Bespoke convoy services. Includes convoy images, service filters, review profiles and a quote request API.
 
-## Hosting
+## Deploy on Vercel
 
-This version runs on Cloudflare Workers with a D1 database. It is not a static GitHub Pages site: the quote-request API requires a server and database. GitHub stores the source; Cloudflare hosts the application.
+1. In Vercel, select **Add New → Project**, then import `Aminvi/ABIPRIVATESECURITY`.
+2. Use **Next.js** as the Framework Preset and the repository root as Root Directory.
+3. Use the default Next.js output directory; remove any previous `dist`, `dist/client` or `public` output override. Build command: `pnpm build`.
+4. Deploy. The catalogue can build and display before database environment variables are configured. The request form will return a recoverable error until the database is configured; it never reports an unsaved request as successful.
 
-### First deployment
+The GitHub integration creates new deployments when changes are pushed. If an older deployment failed, deploy the latest commit rather than redeploying the old source.
 
-Install Node.js 22.13 or newer and pnpm. Then run:
+## Enable quote saving
+
+The site uses Cloudflare D1 over HTTPS from Vercel. The original private preview's database is not copied into this repository.
+
+1. Create a D1 database in your own Cloudflare account, or use your existing convoy-request database.
+2. In its SQL console, run the schema in `drizzle/0000_regular_roxanne_simpson.sql` once on an empty database. The table is `quote_requests`.
+3. Create a Cloudflare API token limited to **Account / D1 / Edit** for the account containing that database.
+4. In Vercel **Project Settings → Environment Variables**, set:
+
+| Variable | Value |
+| --- | --- |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
+| `CLOUDFLARE_D1_DATABASE_ID` | D1 database ID |
+| `CLOUDFLARE_D1_API_TOKEN` | Scoped Cloudflare API token |
+
+Set them for Production and any Preview deployments where booking requests should work. Redeploy after adding or changing variables. Keep the token in Vercel settings; do not put it in GitHub or prefix it with `NEXT_PUBLIC_`.
+
+The full-screen success message appears only after D1 confirms the insert. Email/SMS notifications, payments, dispatch and confirmed bookings are not connected.
+
+## Local development
+
+Use Node.js 22.13 or newer and pnpm:
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm exec wrangler login
-pnpm exec wrangler d1 create abiprivatesecurity-quotes
-```
-
-Copy the database ID returned by the last command into `wrangler.json`, replacing the placeholder `database_id`. Keep the binding name `DB`.
-
-```sh
-pnpm build
-pnpm deploy
-```
-
-The deploy command applies the SQL migrations and deploys the Worker. Wrangler prints the live website URL. No application API key is required. Sign in to your own Cloudflare account; the database of the original hosted preview is not transferred.
-
-### Local development
-
-```sh
-pnpm db:local
+cp .env.example .env.local
 pnpm dev
 ```
 
-For later deployments, run `pnpm build` followed by `pnpm deploy`. Keep migration files in version control; add new migrations for schema changes.
+Fill `.env.local` with your database values to test quote saving. To validate the production build:
 
-### Connect GitHub for automatic builds
+```sh
+pnpm build
+pnpm start
+```
 
-In Cloudflare Workers & Pages, connect this GitHub repository to a Worker project. Set the build command to `pnpm build` and the deploy command to `pnpm deploy`. Configure the database ID in `wrangler.json` first. Database migrations must run against the same Cloudflare account as the deployment.
+## Before launch
 
-## Before accepting real bookings
+Providers and customer reviews remain demonstration content with a disclosure. Replace them with actual providers and customer feedback. Convoy photographs are generated representations; replace them with your actual fleet when available. Stored enquiries have no public read endpoint; an authenticated management workflow still needs to be added for dispatch operations.
 
-Providers and reviews are demonstration content with a disclosure in the interface. Convoy images are generated representations. Replace them with your actual fleet, provider details and customer feedback. Quote requests are stored in D1 and return a reference; email/SMS notifications, dispatch, payment and booking confirmation are not connected. The site does not expose stored enquiries through a public read endpoint. Add a protected administration workflow to manage requests before launch.
-
-## Project
-
-- `app/page.tsx`: catalogue, filters, reviews and enquiry form.
-- `app/api/requests/route.ts`: validated request-saving endpoint.
-- `public/`: convoy images and brand icon.
-- `db/` and `drizzle/`: database schema and migrations.
-- `wrangler.json`: hosting and database binding configuration.
-
-Built with React, Vinext, Tailwind CSS and Cloudflare D1.
+The original Cloudflare-specific build entry point and configuration have been removed. This repository now uses standard Next.js on Vercel.

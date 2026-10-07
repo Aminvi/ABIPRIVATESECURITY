@@ -6,11 +6,9 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "vinext dev",
-    "build": "vinext build",
-    "preview": "wrangler dev --config dist/server/wrangler.json",
-    "deploy": "wrangler d1 migrations apply DB --remote && wrangler deploy",
-    "db:local": "wrangler d1 migrations apply DB --local",
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
     "db:generate": "drizzle-kit generate",
     "typecheck": "tsc --noEmit"
   },
